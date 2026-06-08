@@ -1,12 +1,15 @@
-import { useState } from 'react'
-import { useProducts } from './hooks/useProducts'
-import { useFilters } from './hooks/useFilters'
-import ProductTable from './components/ProductTable'
-import SearchFilterBar from './components/SearchFilterBar'
-import ProductModal from './components/ProductModal'
-import Dashboard from './components/Dashboard'
+import { useState } from "react"
+import { useProducts } from "./hooks/useProducts"
+import { useFilters } from "./hooks/useFilters"
+import { useAuth } from "./hooks/useAuth"
+import ProductTable from "./components/ProductTable"
+import SearchFilterBar from "./components/SearchFilterBar"
+import ProductModal from "./components/ProductModal"
+import Dashboard from "./components/Dashboard"
+import LoginPage from "./pages/LoginPage"
 
 export default function App() {
+  const { user, loading, logout } = useAuth()
   const { products, addProduct, updateProduct, deleteProduct } = useProducts()
   const { search, setSearch, category, setCategory, stockStatus, setStockStatus, filteredProducts } = useFilters(products)
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -22,6 +25,26 @@ export default function App() {
     }
   }
 
+  // Show blank screen while Firebase checks login status
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <span className="text-white font-bold">S</span>
+          </div>
+          <p className="text-gray-400 text-sm">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show login page if not logged in
+  if (!user) {
+    return <LoginPage />
+  }
+
+  // Show inventory if logged in
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
@@ -42,11 +65,18 @@ export default function App() {
               {outOfStockCount} out of stock
             </span>
           )}
+          <span className="text-xs text-gray-400 hidden sm:block">{user.email}</span>
           <button
             onClick={() => setSelectedProduct({})}
             className="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium"
           >
             + Add product
+          </button>
+          <button
+            onClick={logout}
+            className="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Logout
           </button>
         </div>
       </nav>
@@ -56,18 +86,12 @@ export default function App() {
           <h1 className="text-2xl font-bold text-gray-900">Inventory</h1>
           <p className="text-gray-500 text-sm mt-1">Manage your shop stock</p>
         </div>
-
-        {/* Dashboard cards + CSV export */}
         <Dashboard products={products} />
-
-        {/* Search & Filters */}
         <SearchFilterBar
           search={search} setSearch={setSearch}
           category={category} setCategory={setCategory}
           stockStatus={stockStatus} setStockStatus={setStockStatus}
         />
-
-        {/* Product Table */}
         <ProductTable
           products={filteredProducts}
           onEdit={setSelectedProduct}
