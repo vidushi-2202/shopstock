@@ -1,6 +1,6 @@
+
 import { useState, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
-import { seedProducts } from '../data/seedProducts'
 
 const STORAGE_KEY = 'shopstock_products'
 
@@ -11,7 +11,7 @@ function loadFromStorage() {
   } catch (e) {
     console.error('Failed to load from localStorage', e)
   }
-  return seedProducts
+  return []
 }
 
 function saveToStorage(products) {
